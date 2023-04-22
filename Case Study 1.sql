@@ -88,9 +88,9 @@ GROUP BY s.customer_id;
 
 SELECT rn.customer_id, rn.product_name
 FROM (
-		SELECT s.*, m.product_name, DENSE_RANK() OVER (PARTITION BY s.customer_id ORDER BY s.order_date) as row_num
-		FROM sales s JOIN menu m
-			ON s.product_id = m.product_id
+	SELECT s.*, m.product_name, DENSE_RANK() OVER (PARTITION BY s.customer_id ORDER BY s.order_date) as row_num
+	FROM sales s JOIN menu m
+		ON s.product_id = m.product_id
 	) rn
 WHERE rn.row_num = 1;
 
@@ -110,7 +110,7 @@ ORDER BY most_purchased_item desc;
 
 WITH most_popular_order as (
 	SELECT s.customer_id, m.product_name, COUNT(s.product_id) as order_count,
-			DENSE_RANK() OVER (PARTITION BY s.customer_id ORDER BY COUNT(s.customer_id) DESC) as order_ranking
+		DENSE_RANK() OVER (PARTITION BY s.customer_id ORDER BY COUNT(s.customer_id) DESC) as order_ranking
 	FROM sales s JOIN menu m
 		ON s.product_id = m.product_id
 	GROUP BY s.customer_id, m.product_name
@@ -192,17 +192,17 @@ B have at the end of January? */
 
 
 WITH get_week AS (
-		SELECT *, DATEADD (DAY, 6, mm.join_date) AS last_date
-		FROM members mm
+	SELECT *, DATEADD (DAY, 6, mm.join_date) AS last_date
+	FROM members mm
 	)
 
 SELECT s.customer_id,
 SUM(CASE
-		WHEN s.product_id = 1 THEN m.price * 20
-		WHEN s.order_date BETWEEN g.join_date AND g.last_date THEN m.price * 20
-		ELSE m.price * 10
-		END
-	) AS points
+	WHEN s.product_id = 1 THEN m.price * 20
+	WHEN s.order_date BETWEEN g.join_date AND g.last_date THEN m.price * 20
+	ELSE m.price * 10
+	END
+) AS points
 FROM sales s JOIN get_week g
 		ON s.customer_id = g.customer_id
 	JOIN menu m
