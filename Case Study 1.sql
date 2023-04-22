@@ -211,3 +211,42 @@ WHERE s.order_date < '2021-02-01'
 GROUP BY s.customer_id;
 
 -- At the end of January, Customer A had 1370 points while Customer B has 820 points.
+
+-- BONUS QUESTIONS
+
+-- Join All The Things
+
+SELECT sl.customer_id, sl.order_date, mn.product_name, mn.price,
+	(CASE
+		WHEN sl.customer_id NOT IN (SELECT customer_id FROM members) THEN 'N'
+		WHEN sl.order_date < mm.join_date THEN 'N'
+		ELSE 'Y'
+		END
+	) as member
+FROM sales sl LEFT JOIN menu mn
+	ON sl.product_id = mn.product_id LEFT JOIN members mm
+		ON sl.customer_id = mm.customer_id;
+
+
+-- Rank All The Things
+WITH membership AS (
+	SELECT sl.customer_id, sl.order_date, mn.product_name, mn.price,
+		(CASE
+			WHEN sl.customer_id NOT IN (SELECT customer_id FROM members) THEN 'N'
+			WHEN sl.order_date < mm.join_date THEN 'N'
+			ELSE 'Y'
+			END
+		) AS member		
+	FROM sales sl LEFT JOIN menu mn
+		ON sl.product_id = mn.product_id LEFT JOIN members mm
+			ON sl.customer_id = mm.customer_id
+	)
+
+SELECT *, 
+	(CASE
+		WHEN mbshp.member = 'N' THEN NULL
+		ELSE DENSE_RANK() OVER (PARTITION BY mbshp.customer_id, mbshp.member ORDER BY mbshp.order_date)
+		END
+	) AS ranking
+FROM membership mbshp
+ORDER BY mbshp.customer_id, mbshp.order_date, mbshp.price desc;
